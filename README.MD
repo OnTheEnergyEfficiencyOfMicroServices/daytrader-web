@@ -1,138 +1,77 @@
-
-
 # DayTrader Web
 
-The Web UI to the DayTrader business operations
-
-
-
-## Monolithic Architecture
-
-DayTrader is multi-tier application is built around the paradigm of an online stock trading system. Example business operations include
-login, register, view portfolio, lookup stock quotes, and buy or sell stock. DayTrader was originally developed by IBM and donated 
-to the Apache Geronimo community in the 2005 timeframe. The DayTrader architecture is representitive of monolithic applications that 
-many businesses are still using. For that reason, we selected it to clarify the techniques for refactoring a monolith to microservices. 
-For the monolithic architecture, see [daytrader - a more complex application](http://geronimo.apache.org/GMOxDOC30/daytrader-a-more-complex-application.html). 
-
-
-
-## Microservices Architecture
-
-Consider the following microservices architecture diagram. In this architecture, the Web is responsible for the UI to the DayTrader business operations. It accepts 
-incoming requests from the browser and delegates them to the [Gateway Microservice](https://github.com/jpmorganchase/daytrader-example-gatewayrepo/). The 
-Gateway Microservice in turn redirects the request to the ([Accounts Microservice](https://github.com/jpmorganchase/daytrader-example-accountsrepo/), 
-[Portfolios Microservice](https://github.com/jpmorganchase/daytrader-example-portfoliosrepo/), or 
-[Quotes Microservice](https://github.com/jpmorganchase/daytrader-example-quotesrepo/); which implements that business operation. All of these components are Spring Boot applications.
-
-![Target-State-Architecture](images/Target-State-Architecture.JPG)
-
-
+The Web UI from the daytrader application.
 
 ## Prerequisites
 
-1.  [Install Java 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+### Java 8
+```
+sudo apt install openjdk-8-jdk
+```
+```
+sudo update-alternatives --config java
+```
+```
+sudo update-alternatives --config javac
+```
+```
+java -version
+```
+[Linux Guide](https://linuxconfig.org/how-to-install-and-switch-java-versions-on-ubuntu-linux)
 
-2.  [Install Maven 3.3.9+](https://maven.apache.org/download.cgi)
-
-3.  [Install Docker](https://www.docker.com/get-docker)
-    
-4.  [Create DockerHub Account](https://hub.docker.com/)
-
-
-
-## Configuration
-
-Maven must be able to authenticate to your DockerHub account so it can push Docker images
-
-1.  In `daytrader-web/pom.xml` change the ${user.name} to your DockerHub user name:
-
-    ```xml
-    <docker.image.prefix>${user.name}</docker.image.prefix>
-    ``` 
-
-2.  In `daytrader-web/env/external/k8s/web-deployment.yaml`, change the image to your DockerHub username
-
-    ```yaml
-    image: YOUR_DOCKERHUB_USERNAME/daytrader-gateway:4.0.18
-    ```
-
-3.  In `daytrader-web/pom.xml`, you don't have to change the `<tag>`, but if you do, change the above version too.
-        
-    ```xml
-    <tag>4.0.18</tag>
-    ```
-
-4.  In `~/.m2/settings.xml`, add the following so Maven can push images to your DockerHub account
-
-    ```xml
-    <servers>
-        <server>
-            <id>docker.io</id>
-            <username>YOUR_DOCKERHUB_USERNAME</username>
-            <password>YOUR_DOCKERHUB_PASSWORD</password>
-        </server>
-    </servers> 
-    ```
-
-
-
-## Setup
-
-You will need a cluster to run the application. If you already have a cluster with the NGINX Ingress Controller installed then feel free to use it. If not, we have provided instructions to help you setup a cluster on Minikube, Amazon EKS, Google Kubernetes Engine, and Azure Kubernetes Service. We have also tested the application on those platforms. For other platforms, see [Picking the right Solution](https://kubernetes.io/docs/setup/pick-right-solution/).
-
-1.  [Setup on Minikube](docs/SETUP-ON-MINIKUBE.MD)
-
-2.  [Setup on Amazon EKS](docs/SETUP-ON-EKS.MD)
-
-3.  [Setup on Google GKE](docs/SETUP-ON-GKE.MD)
-
-4.  [Setup on Azure AKS](docs/SETUP-ON-AKS.MD)
-
-
+### Maven 3.3.9+
+```
+sudo apt install maven
+```
+```
+mvn -v
+```
 
 ## Build, Release, and Run
 
-You can run the application on Spring Boot or on the Kubernetes Cluser.
 
-1.  [Run on Spring Boot](docs/RUN-ON-SPRING-BOOT.MD)
+### Build
 
-2.  [Run on Kubernetes](docs/RUN-ON-KUBERNETES.MD)
+1.  `$ cd daytrader-webapp`
 
-**Notes** 
+2.  `$ mvn package`
 
-1.  The application code and build scripts were 100% portable across the Kubernetes platforms we tested.
+    This command builds the Spring Boot executable WAR
 
-2.  This means you can write the code once and run it on any platform. This is great news for developers!
+### Start
 
+1.  `$ cd daytrader-web`
 
+2.  `$ ./env/external/springboot/bin/start_server.sh`
 
-## Migration Approach
+    This command runs the Spring Boot executable WAR
 
-In this section we will take a look at how we migrated the Web UI Spring Boot Application to Kubernetes. 
+https://localhost:5443/
 
-1.  [Generate the Docker Image](docs/GENERATE-DOCKER-IMAGE.MD)
+### Review the Swagger Documentation
 
-2.  [Create the Kubernetes Deployment](docs/CREATE-KUBERNETES-DEPLOYMENT.MD)
+1.  https://localhost:5443/swagger-ui.html
 
-3.  [Create the Kubernetes Service](docs/CREATE-KUBERNETES-SERVICE.MD)
+<hr>
 
-4.  [Create the Certificate and Prvate Key](docs/CREATE-CERT-AND-KEY.MD)
+### Test the Web UI
 
-5.  [Create the Kubernetes Secret](docs/CREATE-KUBERNETES-SECRET.MD)
+1.  Start the Accounts, Gateway, Portfolios, and Quotes
 
-6.  [Create the Kubernetes Ingress](docs/CREATE-KUBERNETES-INGRESS.MD)
+2.  Open your browser and navigate to: `https://localhost:5443`
 
-7.  [Configure the DNS Service](docs/CONFIGURE-DNS-SERVICE.MD)
+3.  Under the Configuration Tab
 
-**Notes** 
+    a.  Press(Re)-create DayTrader Database Tables and Indexes
+    
+    b.  Press (Re)-populate DayTrader Database
 
-1.  The application deployment scripts and commands were 100% portable across the Kubernetes platforms we tested. 
+    c.  Press Test Daytrader Scenario
 
-2.  This means you can write the scripts once and deploy to any Kubernetes platform. This is great news for DevOps!
+4.  Keep refreshing the browser until you are satisfied that DayTrader is working. 
 
-
-
-
-
-            
-
+    Note that each time you refresh the browser, it runs a random functional test. 
+   
+    That's it! You have now tested the DayTader
+    
+5.  Stop the Accounts, Gateway, Portfolios, and Quotes
